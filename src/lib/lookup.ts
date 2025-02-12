@@ -11,11 +11,14 @@ export const useLookup = () => {
 
 	return {
 		lookup,
-		loaded: lookup.eight.length > 0,
+		loaded: lookup.eight.length > 0 && lookup.nine.length > 0,
 		load: () => {
-			fetch("/lookup.json")
+			fetch("/lookup-8.json")
 				.then((res) => res.json())
-				.then(setLookup);
+				.then((data) => setLookup((prev) => ({ ...prev, eight: data })));
+			fetch("/lookup-9.json")
+				.then((res) => res.json())
+				.then((data) => setLookup((prev) => ({ ...prev, nine: data })));
 		},
 	};
 };

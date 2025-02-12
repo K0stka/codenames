@@ -89,10 +89,5 @@ export const nCk = (n, k) => {
 	return coefficient;
 };
 
-fs.writeFileSync(
-	"./public/lookup.json",
-	JSON.stringify({
-		eight: generateNumbers(8, 25),
-		nine: generateNumbers(9, 25),
-	})
-);
+fs.writeFileSync("./public/lookup-8.json", JSON.stringify(generateNumbers(8, 25)));
+fs.writeFileSync("./public/lookup-9.json", JSON.stringify(generateNumbers(9, 25)));

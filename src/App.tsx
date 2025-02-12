@@ -84,7 +84,13 @@ function App() {
 						<AlertTriangle />
 						Upozornění
 					</h1>
-					Ke urychlení výpočtů je potřeba stáhnout ~90MB dat. Chcete pokračovat?
+					<div className="text-center">
+						Ke urychlení výpočtů je potřeba stáhnout ~12MB dat
+						<br />
+						(případně ~130MB, pokud Váš prohlížeč nepodporuje gzip).
+						<br />
+						Chcete pokračovat?
+					</div>
 					<Button onClick={load}>
 						<Download />
 						Stáhnout data
