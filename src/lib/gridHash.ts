@@ -14,13 +14,15 @@ export type Grid = [
 	[boolean, boolean, boolean, boolean, boolean]
 ];
 
-export const emptyGrid: Grid = [
+const emptyGrid: Grid = [
 	[false, false, false, false, false],
 	[false, false, false, false, false],
 	[false, false, false, false, false],
 	[false, false, false, false, false],
 	[false, false, false, false, false],
-] as const;
+];
+
+export const getEmptyGrid = (): Grid => emptyGrid;
 
 /**
  * Maps 5x5 grid with exactly numberOfSquares (8 or 9) selected fields to a single number

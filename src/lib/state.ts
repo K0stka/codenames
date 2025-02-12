@@ -1,5 +1,5 @@
 import { Hint, NumberOfSquares } from "@/App";
-import { emptyGrid, gridToNumber, numberToGrid } from "./gridHash";
+import { getEmptyGrid, gridToNumber, numberToGrid } from "./gridHash";
 import { numberToWordAndHint, useDictionary, wordAndHintToNumber } from "./dictionary";
 import { useEffect, useState } from "react";
 
@@ -9,7 +9,7 @@ export const getState = () => {
 	const [mode, setMode] = useState<"encode" | "decode">("encode");
 	const [numberOfSquares, setNumberOfSquares] = useState<NumberOfSquares>(9);
 
-	const [grid, setGrid] = useState(emptyGrid);
+	const [grid, setGrid] = useState(getEmptyGrid());
 
 	const correctAmountOfSelectedSquares = grid.flat().reduce((acc, v) => acc + (v ? 1 : 0), 0) === numberOfSquares;
 
@@ -42,7 +42,7 @@ export const getState = () => {
 		const number = wordAndHintToNumber(word, hint, dictionary);
 
 		if (number === null) {
-			setGrid(emptyGrid);
+			setGrid(getEmptyGrid());
 			return;
 		}
 
