@@ -1,32 +1,44 @@
 import { Fragment } from "react/jsx-runtime";
-import { type Grid } from "../lib/gridHash";
 import { cn } from "@/lib/utils";
+import { type Grid } from "@/lib/algorithms/algorithm";
 
 interface GridProps {
 	grid: Grid;
 	onGridChange?: (grid: Grid) => void;
+	small?: true;
 }
 
-const Grid = ({ grid, onGridChange }: GridProps) => {
+const Grid = ({ grid, onGridChange, small }: GridProps) => {
 	return (
-		<div className="inline-grid grid-rows-5 grid-cols-5 bg-secondary gap-2 p-4 rounded-2xl">
+		<div
+			className={cn("inline-grid grid-rows-5 grid-cols-5 bg-secondary gap-2 p-4 rounded-2xl", {
+				"gap-1 p-1.5 rounded-lg": small,
+			})}>
 			{grid.map((row, i) => (
 				<Fragment key={i}>
 					{row.map((cell, j) => {
 						return (
 							<div
 								key={j}
-								className={cn("size-10 rounded-sm", {
-									"bg-orange-400": cell,
-									"bg-gray-300": !cell,
-									"cursor-pointer": !!onGridChange,
-								})}
+								className={cn(
+									"size-10 rounded-sm",
+									{
+										"size-3": small,
+									},
+									{
+										"bg-orange-400": cell,
+										"bg-white/10": !cell,
+										"cursor-pointer": !!onGridChange,
+									}
+								)}
 								onClick={() => {
 									if (!onGridChange) return;
 
-									grid[i][j] = !grid[i][j];
+									const newGrid = grid.map((r) => [...r]);
 
-									onGridChange([...grid]);
+									newGrid[i][j] = !newGrid[i][j];
+
+									onGridChange(newGrid as Grid);
 								}}
 							/>
 						);

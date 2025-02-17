@@ -5,6 +5,7 @@ import { createInterface } from "node:readline";
 const computeHistogram = false;
 const ignoreSameLetters = false;
 const stripDiacritics = false;
+const saveOnlyWords = true;
 
 const file = createInterface({
 	input: fs.createReadStream("./src/assets/czech.txt"),
@@ -37,10 +38,12 @@ for await (const line of file) {
 
 	if (!ignoreSameLetters && existing.has(word)) continue;
 
-	parsed.push({
-		w: word,
-		l: lettersSorted,
-	});
+	if (saveOnlyWords) parsed.push(word);
+	else
+		parsed.push({
+			w: word,
+			l: lettersSorted,
+		});
 
 	if (ignoreSameLetters) existing.set(lettersHash, true);
 	else existing.set(word, true);
@@ -48,7 +51,7 @@ for await (const line of file) {
 	if (computeHistogram) letters.forEach((l) => (histogram[l] = (histogram[l] ?? 0) + 1));
 }
 
-fs.writeFileSync("./public/dictionary.json", JSON.stringify(parsed));
+fs.writeFileSync("./public/algorithms/dictionary/dictionary.json", JSON.stringify(parsed));
 fs.writeFileSync(
 	"./public/stats.json",
 	JSON.stringify(
@@ -89,5 +92,5 @@ export const nCk = (n, k) => {
 	return coefficient;
 };
 
-fs.writeFileSync("./public/lookup-8.json", JSON.stringify(generateNumbers(8, 25)));
-fs.writeFileSync("./public/lookup-9.json", JSON.stringify(generateNumbers(9, 25)));
+fs.writeFileSync("./public/algorithms/dictionary/lookup-8.json", JSON.stringify(generateNumbers(8, 25)));
+fs.writeFileSync("./public/algorithms/dictionary/lookup-9.json", JSON.stringify(generateNumbers(9, 25)));

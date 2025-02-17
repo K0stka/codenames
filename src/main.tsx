@@ -10,7 +10,7 @@ createRoot(document.getElementById("root")!).render(
 	<StrictMode>
 		<ErrorBoundary
 			FallbackComponent={({ error }: { error: Error }) => (
-				<div className="w-dvw h-dvh overflow-hidden bg-destructive text-destructive-foreground flex flex-col gap-10 items-center justify-center">
+				<div className="w-dvw h-dvh overflow-hidden bg-red-500 text-destructive-foreground flex flex-col gap-10 items-center justify-center">
 					<b className="text-3xl">Honza něco pokazil 🥺</b>
 					<pre className="bg-slate-800 text-amber-100 p-3 rounded-lg max-w-[80dvw] max-h-96 overflow-y-auto break-all text-wrap">{error.message}</pre>
 					<pre className="bg-slate-800 text-amber-100 p-3 rounded-lg max-w-[80dvw] max-h-96 overflow-y-auto break-all text-wrap">
