@@ -1,6 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
 
 import { DictionaryAlgorithm } from "./lib/algorithms/dictionary";
+import { CombinatorialAlgorithm } from "./lib/algorithms/combinatoric";
 import Grid from "./components/grid";
 import { Algorithm, type Hint } from "./lib/algorithms/algorithm";
 import { Input } from "./components/ui/input";
@@ -12,8 +13,10 @@ import AlgorithmPicker from "./components/algorithmPicker";
 const algorithms = new Map<string, Algorithm>();
 
 const dictionaryAlgorithm = new DictionaryAlgorithm();
+const combinatorialAlgorithm = new CombinatorialAlgorithm();
 
 algorithms.set(dictionaryAlgorithm.name, dictionaryAlgorithm);
+algorithms.set(combinatorialAlgorithm.name, combinatorialAlgorithm);
 
 function App() {
 	const { algorithm, setAlgorithm, algorithmDatasetState, grid, setGrid, word, setWord, hint, setHint, explanation } = getState();
