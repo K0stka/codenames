@@ -1,50 +1,45 @@
-# React + TypeScript + Vite
+# Codenames Solver
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Tento projekt se zaměřuje na optimalizaci hry Krycí jména. Využívá různé algoritmy, například i steganografii, s cílem rychle a efektivně uhodnout nebo předat nápovědu.
 
-Currently, two official plugins are available:
+**Demo:** [https://codenames.krychlic.com](https://codenames.krychlic.com)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## Dostupné algoritmy
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+### Dictionary
 
-- Configure the top-level `parserOptions` property like this:
+Využívá faktu, že obě strany znají seřazený slovník českých slov. S pomocí toho mapuje libovolnou konfiguraci na právě jednu kombinaci `word` a `hint` čímž pádem je schopen vyhrát libovolnou pozici s 9 či méně agenty v jednom tahu.
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+---
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## Přispívání
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+Chcete přidat vlastní algoritmus?
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+1. Implementujte abstraktní třídu `Algorithm` v souboru `src/lib/algorithms/algorithm.ts`. (Jakožto inspiraci můžete využít `src/lib/algorithms/dictionary.ts`)
+2. Přidejte instanci Vašeho algoritmu do mapy `algorithms` v `src/App.tsx`.
+3. Otevřete pull request s popisem, jak se změny liší od stávající implementace.
+
+---
+
+## Instalace a spuštění
+
+1. **Instalace závislostí**
+
+    ```bash
+    pnpm install
+    ```
+
+2. **Vygenerování lookup table**  
+   (první musíte vytvořit složky `public/algorithms/dictionary`)
+
+    ```bash
+    node util.js
+    ```
+
+3. **Spuštění vývojového serveru**
+    ```bash
+    pnpm run dev
+    ```
