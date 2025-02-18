@@ -1,7 +1,7 @@
 import { Algorithm, Grid, Word, Hint, Explanation } from "./algorithm";
 
 export class CombinatorialAlgorithm extends Algorithm {
-    readonly name = "Optimized Spy Encoder";
+    readonly name = "Combinatorial";
     private dictionary: string[] = [];
     private static comb: number[][] | null = null;
     private static readonly TOTAL_8 = 1081575; // C(25,8)

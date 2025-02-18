@@ -1,7 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
 
 import { DictionaryAlgorithm } from "./lib/algorithms/dictionary";
-import { CombinatorialAlgorithm } from "./lib/algorithms/combinatoric";
+import { CombinatorialAlgorithm } from "./lib/algorithms/combinatorial";
 import Grid from "./components/grid";
 import { Algorithm, type Hint } from "./lib/algorithms/algorithm";
 import { Input } from "./components/ui/input";
