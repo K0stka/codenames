@@ -1,9 +1,10 @@
 import { Algorithm, Grid, Word, Hint, Explanation } from "./algorithm";
 
 export class CombinatorialAlgorithm extends Algorithm {
-    readonly name = "Kombinatorické kódování";
+    readonly name = "Optimized Spy Encoder";
     private dictionary: string[] = [];
     private static comb: number[][] | null = null;
+    private static readonly TOTAL_8 = 1081575; // C(25,8)
 
     constructor() {
         super();
@@ -71,31 +72,36 @@ export class CombinatorialAlgorithm extends Algorithm {
         }
 
         const k = positions.length;
-        if (k !== 8 && k !== 9) throw new Error('Neplatný počet špionů');
-        const hint = k === 8 ? '8' : '9';
+        
+        
+        // Calculate base rank
+        const baseRank = k === 8 
+            ? CombinatorialAlgorithm.rankCombination(positions, 8)
+            : CombinatorialAlgorithm.TOTAL_8 + CombinatorialAlgorithm.rankCombination(positions, 9);
 
-        // Convert to combinatorial index
-        const rank = CombinatorialAlgorithm.rankCombination(positions, k);
-        
-        // Convert to mixed-base number
-        const base = 10 + this.dictionary.length;
-        const digits: number[] = [];
-        let num = rank;
-        
+        // Split into hint and main encoding
+        let hintValue = baseRank % 10;
+        const mainRank = Math.floor(baseRank / 10);
+        const base = this.dictionary.length + 10;
+
+        // Encode main part
+        let encodedValue = '';
+        let current = mainRank;
         do {
-            digits.push(num % base);
-            num = Math.floor(num / base);
-        } while (num > 0);
-        
-        // Convert digits to symbols
-        const symbols = digits.reverse().map(d => 
-            d < 10 ? d.toString() : this.dictionary[d - 10]
-        );
+            const digit = current % base;
+            encodedValue = (digit < 10 ? digit.toString() : this.dictionary[digit - 10]) + 
+                         encodedValue;
+            current = Math.floor(current / base);
+        } while (current > 0);
 
+        if (k !== 8 && k !== 9) {
+            encodedValue = '';
+            hintValue = 0;
+        };
         return this.addFinalEncodeStep(
-            "Zakódováno",
-            symbols.join('∞'),
-            hint as Hint,
+            "Encoded",
+            encodedValue,
+            hintValue.toString() as Hint,
             explanation
         );
     }
@@ -103,30 +109,39 @@ export class CombinatorialAlgorithm extends Algorithm {
     decode = async (word: Word, hint: Hint): Promise<[Grid, Explanation]> => {
         const explanation = [this.getInitialDecodeStep(word, hint)];
         
-        // Validate hint
-        if (!['8', '9'].includes(hint)) throw new Error('Neplatný hint');
-        const k = parseInt(hint, 10) as 8 | 9;
-
-        // Convert from mixed-base number
-        const base = 10 + this.dictionary.length;
-        const symbols = word.split('∞');
-        let rank = 0;
-
-        for (const symbol of symbols) {
-            let value: number;
-            if (/^\d+$/.test(symbol)) {
-                value = parseInt(symbol, 10);
-            } else {
-                value = 10 + this.dictionary.indexOf(symbol);
-                if (value < 10) throw new Error('Neplatný symbol');
-            }
-            rank = rank * base + value;
+        // Parse numeric hint
+        const hintValue = parseInt(hint, 10);
+        if (isNaN(hintValue) || hintValue < 0 || hintValue > 9) {
+            throw new Error('Invalid hint value');
         }
 
-        // Convert to positions
-        const positions = CombinatorialAlgorithm.unrankCombination(rank, k);
-        
-        // Convert positions to grid
+        // Decode main part
+        const base = this.dictionary.length + 10;
+        let mainRank = 0;
+        const symbols = word
+
+        for (const symbol of symbols) {
+            let value = parseInt(symbol, 10);
+            if (isNaN(value)) {
+                value = 10 + this.dictionary.indexOf(symbol);
+                if (value < 10) throw new Error('Invalid symbol');
+            }
+            mainRank = mainRank * base + value;
+        }
+
+        // Reconstruct full rank
+        const fullRank = mainRank * 10 + hintValue;
+
+        // Determine spy count
+        const k = fullRank < CombinatorialAlgorithm.TOTAL_8 ? 8 : 9;
+        const adjustedRank = k === 8 
+            ? fullRank 
+            : fullRank - CombinatorialAlgorithm.TOTAL_8;
+
+        // Get positions
+        const positions = CombinatorialAlgorithm.unrankCombination(adjustedRank, k);
+
+        // Convert to grid
         const grid: Grid = Array.from({ length: 5 }, () => 
             Array(5).fill(false)
         ) as Grid;
@@ -137,8 +152,9 @@ export class CombinatorialAlgorithm extends Algorithm {
             grid[row][col] = true;
         }
 
-        return this.addFinalDecodeStep("Dekódováno", grid, explanation);
+        return this.addFinalDecodeStep("Decoded", grid, explanation);
     }
+
 
     protected loadDataset = async () => {
         // Load your Czech dictionary here
