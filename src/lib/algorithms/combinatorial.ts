@@ -1,7 +1,7 @@
 import { Algorithm, Grid, Word, Hint, Explanation } from "./algorithm";
 
 export class CombinatorialAlgorithm extends Algorithm {
-    readonly name = "Combinatorial";
+    readonly name = "Combinatorial ranking";
     private dictionary: string[] = [];
     private static comb: number[][] | null = null;
     private static readonly TOTAL_8 = 1081575; // C(25,8)
@@ -72,7 +72,7 @@ export class CombinatorialAlgorithm extends Algorithm {
         }
 
         const k = positions.length;
-        
+        if (k !== 8 && k !== 9) throw new Error('Invalid spy count');
         
         // Calculate base rank
         const baseRank = k === 8 
@@ -80,7 +80,7 @@ export class CombinatorialAlgorithm extends Algorithm {
             : CombinatorialAlgorithm.TOTAL_8 + CombinatorialAlgorithm.rankCombination(positions, 9);
 
         // Split into hint and main encoding
-        let hintValue = baseRank % 10;
+        const hintValue = baseRank % 10;
         const mainRank = Math.floor(baseRank / 10);
         const base = this.dictionary.length + 10;
 
@@ -90,14 +90,10 @@ export class CombinatorialAlgorithm extends Algorithm {
         do {
             const digit = current % base;
             encodedValue = (digit < 10 ? digit.toString() : this.dictionary[digit - 10]) + 
-                         encodedValue;
+                         (encodedValue ? '∞' + encodedValue : '');
             current = Math.floor(current / base);
         } while (current > 0);
 
-        if (k !== 8 && k !== 9) {
-            encodedValue = '';
-            hintValue = 0;
-        };
         return this.addFinalEncodeStep(
             "Encoded",
             encodedValue,
@@ -118,7 +114,7 @@ export class CombinatorialAlgorithm extends Algorithm {
         // Decode main part
         const base = this.dictionary.length + 10;
         let mainRank = 0;
-        const symbols = word
+        const symbols = word.split('∞');
 
         for (const symbol of symbols) {
             let value = parseInt(symbol, 10);
@@ -154,6 +150,8 @@ export class CombinatorialAlgorithm extends Algorithm {
 
         return this.addFinalDecodeStep("Decoded", grid, explanation);
     }
+
+
 
 
     protected loadDataset = async () => {
