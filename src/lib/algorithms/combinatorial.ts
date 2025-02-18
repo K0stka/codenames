@@ -1,163 +1,142 @@
-import { Algorithm, Grid, Word, Hint, Explanation } from "./algorithm";
+import { Algorithm, Empty, Explanation, Grid, Hint, Word } from "./algorithm";
 
 export class CombinatorialAlgorithm extends Algorithm {
-    readonly name = "Combinatorial ranking";
-    private dictionary: string[] = [];
-    private static comb: number[][] | null = null;
-    private static readonly TOTAL_8 = 1081575; // C(25,8)
+	readonly name = "Combinatorial ranking";
+	private dictionary: string[] = [];
+	private static comb: number[][] | null = null;
+	private static readonly TOTAL_8 = 1081575; // C(25,8)
 
-    constructor() {
-        super();
-        if (!CombinatorialAlgorithm.comb) {
-            CombinatorialAlgorithm.precomputeCombinations();
-        }
-    }
+	private static precomputeCombinations() {
+		const comb = Array.from({ length: 26 }, () => Array(10).fill(0));
+		for (let n = 0; n <= 25; n++) {
+			comb[n][0] = 1;
+			for (let k = 1; k <= Math.min(n, 9); k++) {
+				comb[n][k] = comb[n - 1][k - 1] + comb[n - 1][k];
+			}
+		}
+		CombinatorialAlgorithm.comb = comb;
+	}
 
-    private static precomputeCombinations() {
-        const comb = Array.from({ length: 26 }, () => Array(10).fill(0));
-        for (let n = 0; n <= 25; n++) {
-            comb[n][0] = 1;
-            for (let k = 1; k <= Math.min(n, 9); k++) {
-                comb[n][k] = comb[n - 1][k - 1] + comb[n - 1][k];
-            }
-        }
-        CombinatorialAlgorithm.comb = comb;
-    }
+	private static rankCombination(positions: number[], k: number): number {
+		const comb = CombinatorialAlgorithm.comb!;
+		let rank = 0;
+		positions.sort((a, b) => a - b);
 
-    private static rankCombination(positions: number[], k: number): number {
-        const comb = CombinatorialAlgorithm.comb!;
-        let rank = 0;
-        positions.sort((a, b) => a - b);
-        
-        for (let i = 0; i < k; i++) {
-            const prev = i === 0 ? -1 : positions[i - 1];
-            for (let j = prev + 1; j < positions[i]; j++) {
-                rank += comb[25 - j][k - i - 1];
-            }
-        }
-        return rank;
-    }
+		for (let i = 0; i < k; i++) {
+			const prev = i === 0 ? -1 : positions[i - 1];
+			for (let j = prev + 1; j < positions[i]; j++) {
+				rank += comb[25 - j][k - i - 1];
+			}
+		}
+		return rank;
+	}
 
-    private static unrankCombination(rank: number, k: number): number[] {
-        const comb = CombinatorialAlgorithm.comb!;
-        const positions: number[] = [];
-        let remainingRank = rank;
-        let prev = -1;
+	private static unrankCombination(rank: number, k: number): number[] {
+		const comb = CombinatorialAlgorithm.comb!;
+		const positions: number[] = [];
+		let remainingRank = rank;
+		let prev = -1;
 
-        for (let i = 0; i < k; i++) {
-            let j = prev + 1;
-            while (true) {
-                const cnt = comb[25 - j][k - i - 1];
-                if (remainingRank < cnt) break;
-                remainingRank -= cnt;
-                j++;
-            }
-            positions.push(j);
-            prev = j;
-        }
-        return positions;
-    }
+		for (let i = 0; i < k; i++) {
+			let j = prev + 1;
+			while (true) {
+				const cnt = comb[25 - j][k - i - 1];
+				if (remainingRank < cnt) break;
+				remainingRank -= cnt;
+				j++;
+			}
+			positions.push(j);
+			prev = j;
+		}
+		return positions;
+	}
 
-    encode = async (grid: Grid): Promise<[Word, Hint, Explanation]> => {
-        const explanation = [this.getInitialEncodeStep(grid)];
-        const positions: number[] = [];
-        
-        // Convert grid to positions (0-24)
-        for (let row = 0; row < 5; row++) {
-            for (let col = 0; col < 5; col++) {
-                if (grid[row][col]) {
-                    positions.push(row * 5 + col);
-                }
-            }
-        }
+	encode = async (grid: Grid): Promise<[Word, Hint, Explanation]> => {
+		const explanation = [this.getInitialEncodeStep(grid)];
+		const positions: number[] = [];
 
-        const k = positions.length;
-        if (k !== 8 && k !== 9) throw new Error('Invalid spy count');
-        
-        // Calculate base rank
-        const baseRank = k === 8 
-            ? CombinatorialAlgorithm.rankCombination(positions, 8)
-            : CombinatorialAlgorithm.TOTAL_8 + CombinatorialAlgorithm.rankCombination(positions, 9);
+		// Convert grid to positions (0-24)
+		for (let row = 0; row < 5; row++) {
+			for (let col = 0; col < 5; col++) {
+				if (grid[row][col]) {
+					positions.push(row * 5 + col);
+				}
+			}
+		}
 
-        // Split into hint and main encoding
-        const hintValue = baseRank % 10;
-        const mainRank = Math.floor(baseRank / 10);
-        const base = this.dictionary.length + 10;
+		const k = positions.length;
+		if (k !== 8 && k !== 9) return this.addFinalEncodeStep("Invalid grid", Empty.word, Empty.hint, explanation);
 
-        // Encode main part
-        let encodedValue = '';
-        let current = mainRank;
-        do {
-            const digit = current % base;
-            encodedValue = (digit < 10 ? digit.toString() : this.dictionary[digit - 10]) + 
-                         (encodedValue ? '∞' + encodedValue : '');
-            current = Math.floor(current / base);
-        } while (current > 0);
+		// Calculate base rank
+		const baseRank = k === 8 ? CombinatorialAlgorithm.rankCombination(positions, 8) : CombinatorialAlgorithm.TOTAL_8 + CombinatorialAlgorithm.rankCombination(positions, 9);
 
-        return this.addFinalEncodeStep(
-            "Encoded",
-            encodedValue,
-            hintValue.toString() as Hint,
-            explanation
-        );
-    }
+		// Split into hint and main encoding
+		const hintValue = baseRank % 10;
+		const mainRank = Math.floor(baseRank / 10);
+		const base = this.dictionary.length + 10;
 
-    decode = async (word: Word, hint: Hint): Promise<[Grid, Explanation]> => {
-        const explanation = [this.getInitialDecodeStep(word, hint)];
-        
-        // Parse numeric hint
-        const hintValue = parseInt(hint, 10);
-        if (isNaN(hintValue) || hintValue < 0 || hintValue > 9) {
-            throw new Error('Invalid hint value');
-        }
+		// Encode main part
+		let encodedValue = "";
+		let current = mainRank;
+		do {
+			const digit = current % base;
+			encodedValue = (digit < 10 ? digit.toString() : this.dictionary[digit - 10]) + (encodedValue ? "∞" + encodedValue : "");
+			current = Math.floor(current / base);
+		} while (current > 0);
 
-        // Decode main part
-        const base = this.dictionary.length + 10;
-        let mainRank = 0;
-        const symbols = word.split('∞');
+		return this.addFinalEncodeStep("Encoded", encodedValue, hintValue.toString() as Hint, explanation);
+	};
 
-        for (const symbol of symbols) {
-            let value = parseInt(symbol, 10);
-            if (isNaN(value)) {
-                value = 10 + this.dictionary.indexOf(symbol);
-                if (value < 10) throw new Error('Invalid symbol');
-            }
-            mainRank = mainRank * base + value;
-        }
+	decode = async (word: Word, hint: Hint): Promise<[Grid, Explanation]> => {
+		const explanation = [this.getInitialDecodeStep(word, hint)];
 
-        // Reconstruct full rank
-        const fullRank = mainRank * 10 + hintValue;
+		// Parse numeric hint
+		const hintValue = parseInt(hint, 10);
+		if (isNaN(hintValue) || hintValue < 0 || hintValue > 9) {
+			return this.addFinalDecodeStep("Invalid hint", Empty.grid, explanation);
+		}
 
-        // Determine spy count
-        const k = fullRank < CombinatorialAlgorithm.TOTAL_8 ? 8 : 9;
-        const adjustedRank = k === 8 
-            ? fullRank 
-            : fullRank - CombinatorialAlgorithm.TOTAL_8;
+		// Decode main part
+		const base = this.dictionary.length + 10;
+		let mainRank = 0;
+		const symbols = [word];
 
-        // Get positions
-        const positions = CombinatorialAlgorithm.unrankCombination(adjustedRank, k);
+		for (const symbol of symbols) {
+			let value = parseInt(symbol, 10);
+			if (isNaN(value)) {
+				value = 10 + this.dictionary.indexOf(symbol);
+				if (value < 10) return this.addFinalDecodeStep("Invalid hint", Empty.grid, explanation);
+			}
+			mainRank = mainRank * base + value;
+		}
 
-        // Convert to grid
-        const grid: Grid = Array.from({ length: 5 }, () => 
-            Array(5).fill(false)
-        ) as Grid;
-        
-        for (const pos of positions) {
-            const row = Math.floor(pos / 5);
-            const col = pos % 5;
-            grid[row][col] = true;
-        }
+		// Reconstruct full rank
+		const fullRank = mainRank * 10 + hintValue;
 
-        return this.addFinalDecodeStep("Decoded", grid, explanation);
-    }
+		// Determine spy count
+		const k = fullRank < CombinatorialAlgorithm.TOTAL_8 ? 8 : 9;
+		const adjustedRank = k === 8 ? fullRank : fullRank - CombinatorialAlgorithm.TOTAL_8;
 
+		// Get positions
+		const positions = CombinatorialAlgorithm.unrankCombination(adjustedRank, k);
 
+		// Convert to grid
+		const grid: Grid = Array.from({ length: 5 }, () => Array(5).fill(false)) as Grid;
 
+		for (const pos of positions) {
+			const row = Math.floor(pos / 5);
+			const col = pos % 5;
+			grid[row][col] = true;
+		}
 
-    protected loadDataset = async () => {
-        // Load your Czech dictionary here
-        // Example: this.dictionary = await fetchDictionary();
-        this.dictionary = await fetch("/algorithms/dictionary/dictionary.json").then(res => res.json()) as string[];
-        return { loaded: true, message: "Slovník načten" };
-    }
+		return this.addFinalDecodeStep("Decoded", grid, explanation);
+	};
+
+	protected loadDataset = async () => {
+		await CombinatorialAlgorithm.precomputeCombinations();
+		// Load your Czech dictionary here
+		// Example: this.dictionary = await fetchDictionary();
+		this.dictionary = (await fetch("/algorithms/dictionary/dictionary.json").then((res) => res.json())) as string[];
+		return { loaded: true, message: "Slovník načten" };
+	};
 }
